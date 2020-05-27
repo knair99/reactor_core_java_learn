@@ -15,13 +15,14 @@ import java.util.function.Supplier;
 public class Part19ImpostorMethod {
 
     public Mono<Integer> filterEven(Supplier<Integer> numberSupplier) {
-        Integer number = numberSupplier.get();
-        boolean isEven = number % 2 == 0;
-        if (isEven) {
-            return Mono.just(number);
-        } else {
-            return Mono.empty();
-        }
+        return Mono.fromSupplier(numberSupplier)
+            .filter(number -> number % 2 == 0);
+//        Integer number = numberSupplier.get();
+//        boolean isEven = number % 2 == 0;
+//        if (isEven) {
+//            return Mono.just(number);
+//        } else {
+//            return Mono.empty();
+//        }
     }
-
 }

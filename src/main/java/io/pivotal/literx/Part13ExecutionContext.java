@@ -22,13 +22,20 @@ public class Part13ExecutionContext {
 
   // TODO Find on which thread is each operator executing
   Flux<Integer> findWhichExecutionContext() {
-    return Flux.range(0, 10)            // thread: ?
-        .map(integer -> integer * 2)                // thread: ?
-        .subscribeOn(blue)                          // thread: ?
-        .publishOn(green)                           // thread: ?
-        .map(integer -> integer * 4)                // thread: ?
-        .flatMap(this::zeroIfEven)                  // thread: ?
-        .subscribeOn(red);                          // thread:
+    return Flux.range(0, 10)            // thread: blue
+        .doOnComplete(() -> System.out.println(Thread.currentThread().getName()))
+        .map(integer -> integer * 2)                // thread: blue
+        .doOnComplete(() -> System.out.println(Thread.currentThread().getName()))
+        .subscribeOn(blue)                          // thread: blue
+        .doOnComplete(() -> System.out.println(Thread.currentThread().getName()))
+        .publishOn(green)                           // thread: green
+        .doOnComplete(() -> System.out.println(Thread.currentThread().getName()))
+        .map(integer -> integer * 4)                // thread: green
+        .doOnComplete(() -> System.out.println(Thread.currentThread().getName()))
+        .flatMap(this::zeroIfEven)                  // thread: YELLOW - because there was a subscribe on in there
+        .doOnComplete(() -> System.out.println(Thread.currentThread().getName()))
+        .subscribeOn(red)                           // thread: YELLOW - finishes on yellow because of above
+        .doOnComplete(()-> System.out.println(Thread.currentThread().getName()));                          // thread: green
   }
 
   // This Flux emits the thread being used at each step
@@ -36,13 +43,17 @@ public class Part13ExecutionContext {
   // TODO Make the test pass by sprinkling publishOn/subscribeOn and the blue/red/green/yellow schedulers.
   Flux<String> usePublishSubscribe() {
     return Mono.defer(() -> Mono.just(registerCurrentThread(new ArrayList<>())))
+    .publishOn(red)
     .doOnNext(this::registerCurrentThread)
+    .publishOn(yellow)
     .flatMap(strings -> {
       registerCurrentThread(strings);
       return Mono.just(strings)
-          .doOnNext(this::registerCurrentThread);
+          .doOnNext(this::registerCurrentThread)
+          .subscribeOn(green);
     })
-    .flatMapIterable(strings -> strings);
+    .flatMapIterable(strings -> strings)
+    .subscribeOn(blue);
   }
 
   private List<String> registerCurrentThread(List<String> strings) {

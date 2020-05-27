@@ -17,7 +17,7 @@ public class Part18HotCold {
   // TODO We want to share tickProducer between multiple subscribers and
   // transform the stream to a hot stream.
   public Part18HotCold() {
-    this.tickProducer = Flux.interval(Duration.ofMillis(100));
+    this.tickProducer = Flux.interval(Duration.ofMillis(100)).share();
   }
 
   public Flux<Long> getTicks() {

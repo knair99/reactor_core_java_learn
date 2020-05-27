@@ -20,7 +20,8 @@ public class Part17Context {
   // "Found user {getUsername()} in {context.get(cloudId)}" without changing userRepository.findById signature.
   // and pass the context when calling findById
   public Mono<User> addContext() {
-    return userRepository.findById(User.SKYLER.getUsername());
+    return userRepository.findById(User.SKYLER.getUsername())
+            .subscriberContext(context -> context.put("cloudId", "10"));
   }
 
 }
